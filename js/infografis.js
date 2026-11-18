@@ -65,7 +65,16 @@
   I.gembok = '<rect x="-20" y="-4" width="40" height="32" rx="5" fill="' + C.amb + '"/><path d="M-12,-4 v-10 a12,12 0 0 1 24,0 v10" fill="none" stroke="' + C.ink + '" stroke-width="5"/><circle cy="10" r="5" fill="' + C.ink + '"/>';
   I.lapor = '<path d="M-22,-30 h30 l14,14 v46 h-44z" fill="#fff" stroke="' + C.ink + '" stroke-width="4" stroke-linejoin="round"/><path d="M-12,-8 h24 M-12,4 h24 M-12,16 h14" stroke="' + C.mut + '" stroke-width="4" stroke-linecap="round"/><circle cx="18" cy="20" r="12" fill="' + C.red + '"/><path d="M18,13 v8 M18,26 v1" stroke="#fff" stroke-width="4" stroke-linecap="round"/>';
 
+  // ikon tambahan (Modul 3)
+  I.buku = '<path d="M-28,-22 q14,-6 28,2 q14,-8 28,-2 v46 q-14,-6 -28,2 q-14,-8 -28,-2z" fill="#fff" stroke="' + C.ink + '" stroke-width="4" stroke-linejoin="round"/><path d="M0,-20 v46" stroke="' + C.ink + '" stroke-width="3"/><path d="M-20,-8 h12 M-20,2 h12 M8,-8 h12 M8,2 h12" stroke="' + C.mut + '" stroke-width="3" stroke-linecap="round"/>';
+  I.stres = '<circle r="22" fill="' + C.ly + '" stroke="' + C.ink + '" stroke-width="4"/><path d="M-10,-6 l6,4 M10,-6 l-6,4" stroke="' + C.ink + '" stroke-width="3.5" stroke-linecap="round"/><path d="M-9,12 q4,-5 9,0 q5,5 9,0" stroke="' + C.ink + '" stroke-width="3" fill="none"/><path d="M-20,-28 l5,8 l-8,-2 l6,9 M22,-30 l-4,9 l8,-3 l-6,9" stroke="' + C.red + '" stroke-width="3" fill="none" stroke-linejoin="round"/>';
+  I.mesin = '<rect x="-30" y="-6" width="60" height="30" rx="4" fill="' + C.mut + '"/><rect x="-24" y="-24" width="22" height="18" rx="3" fill="' + C.blu + '"/><circle cx="14" cy="-14" r="10" fill="none" stroke="' + C.ink + '" stroke-width="4"/><circle cx="14" cy="-14" r="3" fill="' + C.ink + '"/><rect x="-22" y="4" width="10" height="8" fill="' + C.amb + '"/><rect x="-6" y="4" width="10" height="8" fill="' + C.grn + '"/>';
+  I.jam = '<circle r="26" fill="#fff" stroke="' + C.ink + '" stroke-width="4"/><path d="M0,-16 v16 l11,8" stroke="' + C.ink + '" stroke-width="4" fill="none" stroke-linecap="round"/><circle r="3" fill="' + C.red + '"/>';
+  I.kaca = '<circle cx="-6" cy="-6" r="17" fill="' + C.lb + '" stroke="' + C.ink + '" stroke-width="5"/><path d="M7,7 l18,18" stroke="' + C.ink + '" stroke-width="8" stroke-linecap="round"/>';
+  I.target = '<circle r="26" fill="' + C.red + '"/><circle r="18" fill="#fff"/><circle r="10" fill="' + C.red + '"/><path d="M4,-4 l22,-22 M18,-26 h8 v8" stroke="' + C.ink + '" stroke-width="4" fill="none" stroke-linecap="round"/>';
+
   I.gear = function (r, cls, fill) { return '<g class="spin' + (cls ? ' ' + cls : '') + '">' + gear(r || 24, 8, fill || C.mut) + '</g>'; };
+  function ik(n) { return typeof I[n] === 'function' ? I[n](24) : (I[n] || ''); }
   function icon(name, x, y, sc, attr) { return '<g' + at(x, y, sc) + '><g' + (attr || '') + '>' + I[name] + '</g></g>'; }
   /** Animasi otomatis: SVG/HTML + teks keterangan per adegan, mengikuti narasi. */
   function auto(v, A, body, caps, show) {
@@ -79,7 +88,7 @@
   function pilah(v, A, o) {
     var salah = 0, beres = {};
     v.innerHTML = (o.atas || '') + '<div class="pl">' + o.items.map(function (it, i) {
-      return '<div class="pli" data-i="' + i + '"><div class="plt">' + (it.ikon ? '<svg viewBox="-40 -40 80 80" aria-hidden="true">' + I[it.ikon] + '</svg>' : '') + '<span>' + it.t + '</span></div>' +
+      return '<div class="pli" data-i="' + i + '"><div class="plt">' + (it.ikon ? '<svg viewBox="-40 -40 80 80" aria-hidden="true">' + ik(it.ikon) + '</svg>' : '') + '<span>' + it.t + '</span></div>' +
         '<div class="plb">' + o.opsi.map(function (op, j) { return '<button type="button" class="btn sm ghost" data-j="' + j + '">' + op + '</button>'; }).join('') + '</div><div class="plf" aria-live="polite"></div></div>';
     }).join('') + '</div>';
     var msg = msgBox(v);
@@ -135,6 +144,6 @@
     go.onclick = function () { go.classList.add('done'); msg.textContent = o.selesai; A.done(o.catat); };
     A.onReplay(reset); reset();
   }
-  return { pilah: pilah, peta: peta, centang: centang, C: C, svg: svg, T: T, S: S, O: O, at: at, I: I, icon: icon, auto: auto, msgBox: msgBox };
+  return { ik: ik, pilah: pilah, peta: peta, centang: centang, C: C, svg: svg, T: T, S: S, O: O, at: at, I: I, icon: icon, auto: auto, msgBox: msgBox };
 })();
 })();
