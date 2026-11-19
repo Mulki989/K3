@@ -50,11 +50,11 @@ var K3 = window.K3 || {};
       p = new Promise(function (res) { setTimeout(function () { res(window.PreviewBackend.handle(body)); }, 120); });
     } else {
       var attempt = function (n) {
-        return fetch(url, { method: 'POST', body: JSON.stringify(body), redirect: 'follow' })
+        return fetch(url, { method: 'POST', body: JSON.stringify(body), redirect: 'follow', keepalive: !!opt.keepalive })
           .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
           .catch(function (e) { if (n > 0) return new Promise(function (r) { setTimeout(r, 900); }).then(function () { return attempt(n - 1); }); throw new Error('Koneksi ke server gagal. Periksa internet lalu coba lagi.'); });
       };
-      p = attempt(opt.noRetry ? 0 : 1);
+      p = attempt(opt.noRetry || opt.keepalive ? 0 : 1);
     }
     return p.then(function (res) {
       if (res && res.ok) return res.data;

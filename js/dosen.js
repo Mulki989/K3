@@ -172,8 +172,8 @@
       });
       h += '</tbody></table></div><div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">' +
         '<label class="f">Durasi (menit, 0 = bebas)<input class="inp" type="number" min="0" name="durasi_menit" value="' + Number(k.durasi_menit || 0) + '"></label>' +
-        '<label class="f">Percobaan (0 = tak terbatas)<input class="inp" type="number" min="0" name="percobaan" value="' + Number(k.percobaan || 0) + '"></label>' +
-        (mode === 'ujian' ? '<label class="f">Batas pelanggaran<input class="inp" type="number" min="0" name="batas_pelanggaran" value="' + Number(k.batas_pelanggaran || 0) + '"></label>' : '') +
+        '<label class="f">Maks. percobaan (0 = tak terbatas)<input class="inp" type="number" min="0" name="percobaan" value="' + Number(k.percobaan || 0) + '"></label>' +
+        '<label class="f">Batas pelanggaran (0 = hanya dicatat)<input class="inp" type="number" min="0" name="batas_pelanggaran" value="' + Number(k.batas_pelanggaran || 0) + '"></label>' +
         '<label class="f">Acak urutan pilihan<select class="inp" name="acak_opsi"><option value="1"' + (String(k.acak_opsi).toLowerCase() !== 'tidak' ? ' selected' : '') + '>Ya</option><option value="0"' + (String(k.acak_opsi).toLowerCase() === 'tidak' ? ' selected' : '') + '>Tidak</option></select></label></div>';
       if (mode === 'ujian') h += '<div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"><label class="f">Dibuka mulai<input class="inp" type="datetime-local" name="buka" value="' + toLocal(k.buka) + '"></label><label class="f">Ditutup pada<input class="inp" type="datetime-local" name="tutup" value="' + toLocal(k.tutup) + '"></label></div>';
       h += '<div class="small muted">Total soal: <b class="tot">' + ['C1', 'C2', 'C3', 'C4'].reduce(function (a, L) { return a + Number(k[L] || 0); }, 0) + '</b></div><button class="btn" type="submit">Simpan ' + mode + '</button></form>';

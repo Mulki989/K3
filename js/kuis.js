@@ -27,13 +27,14 @@
       h += '<ul style="margin:0;padding-left:20px;line-height:1.8">' +
         (s.durasi ? '<li>Waktu <b>' + s.durasi + ' menit</b>, berjalan sejak tombol Mulai ditekan.</li>' : '') +
         '<li>Soal dan pilihan diacak berbeda untuk setiap mahasiswa.</li>' +
-        '<li>Jangan berpindah tab, membuka aplikasi lain, atau mengambil tangkapan layar. Setiap kejadian dicatat sebagai pelanggaran; pada batas pelanggaran ujian dikumpulkan otomatis.</li>' +
+        '<li>Jangan berpindah tab, membuka aplikasi lain, menutup browser, atau mengambil tangkapan layar. Setiap kejadian dicatat sebagai pelanggaran' + (s.batasPelanggaran ? '; pada pelanggaran ke-<b>' + s.batasPelanggaran + '</b> ujian dikumpulkan otomatis' : '') + '.</li>' +
         '<li>Jawaban tersimpan otomatis. Bila koneksi putus, buka lagi halaman ini dan pilih Lanjutkan.</li>' +
         '<li>Nama dan NIM Anda tampil sebagai tanda air di layar.</li></ul>';
     } else {
       h += '<ul style="margin:0;padding-left:20px;line-height:1.8"><li>Angka pada soal hitungan berbeda untuk setiap mahasiswa dan setiap percobaan.</li>' +
         '<li>Tekan <b>Periksa</b> pada tiap soal untuk melihat benar/salah dan pembahasan langkah demi langkah.</li>' +
         '<li>Nilai latihan diambil dari pemeriksaan pertama tiap soal. Nilai terbaik yang dipakai.</li>' +
+        '<li>Salin-tempel dan tangkapan layar tidak diizinkan. Berpindah tab/aplikasi atau menutup browser dicatat sebagai pelanggaran' + (s.batasPelanggaran ? '; pada pelanggaran ke-<b>' + s.batasPelanggaran + '</b> latihan dikumpulkan otomatis' : '') + '.</li>' +
         (s.maks ? '<li>Percobaan tersisa: <b>' + (s.maks - s.dipakai) + '</b> dari ' + s.maks + '.</li>' : '<li>Latihan boleh diulang.</li>') + '</ul>';
     }
     h += '<div id="out"></div><div class="row"><button class="btn amber" id="mulai">' + (s.berjalan ? 'Lanjutkan' : 'Mulai') + '</button><a class="btn ghost" href="#/">Kembali</a></div></div></div>';
@@ -41,9 +42,21 @@
     K3.$('#mulai').onclick = function () {
       var b = this; b.disabled = true; b.textContent = 'Menyiapkan soal…';
       var rv2 = K3._rv;
-      K3.api('mulai', { materi: m.id, mode: mode }).then(function (att) { if (!K3.stale(rv2)) run(att, m, d); })
+      K3.api('mulai', { materi: m.id, mode: mode }).then(function (att) { if (K3.stale(rv2)) return; if (att.otomatisSelesai) hasilOtomatis(att, m); else run(att, m, d); })
         .catch(function (e) { K3.$('#out').innerHTML = '<div class="msg err" role="alert">' + K3.esc(e.message) + '</div>'; b.disabled = false; b.textContent = 'Mulai'; });
     };
+  }
+
+  // Masuk lagi setelah menutup halaman dan batas pelanggaran tercapai: percobaan sudah dikumpulkan server.
+  function hasilOtomatis(r, m) {
+    var ujian = r.mode === 'ujian'; K3._beranda = null;
+    var h = K3.topbar((ujian ? 'UJIAN' : 'LATIHAN') + ' · PERTEMUAN ' + m.no, m.judul, '#/') + '<div class="wrap"><div class="card stack" style="max-width:720px">' +
+      '<h1>' + (ujian ? 'Ujian' : 'Latihan') + ' sudah dikumpulkan</h1><div class="msg warn">Anda keluar dari halaman lalu masuk lagi. Ini pelanggaran ke-' + r.pelanggaran + ' dari batas ' + r.batas + ', sehingga ' + (ujian ? 'ujian' : 'latihan') + ' dikumpulkan otomatis dengan jawaban terakhir yang tersimpan.</div>';
+    if (r.skor !== null && r.skor !== undefined) h += '<div style="font-size:44px;font-weight:800;line-height:1">' + K3.num(r.skor) + '<span class="muted" style="font-size:18px"> / 100</span></div>';
+    else h += '<p>Nilai diumumkan dosen.</p>';
+    if (ujian && r.lulus !== undefined && !r.lulus) h += '<div class="msg warn">Belum lulus modul (minimal ' + r.ambang + ').</div>';
+    h += '<div class="row"><a class="btn" href="#/">Kembali ke beranda</a></div></div></div>';
+    app().innerHTML = h;
   }
 
   function run(att, m, d) {
@@ -59,18 +72,20 @@
     // ---------- kunci ujian ----------
     var listeners = [];
     function on(t, ev, fn, opt) { t.addEventListener(ev, fn, opt); listeners.push([t, ev, fn, opt]); }
-    function violation(jenis) {
+    function violation(jenis, keep) {
       if (st.selesai) return;
       var now = Date.now(); if (now - st.lastV < 3000) return; st.lastV = now;
-      K3.api('pelanggaran', { attempt: att.attempt, jenis: jenis, jawaban: ujian ? st.jw : undefined }).then(function (r) {
+      st.pergi = st.pergi || !!keep;
+      // keepalive: permintaan tetap terkirim walaupun halaman/browser sedang ditutup
+      K3.api('pelanggaran', { attempt: att.attempt, jenis: jenis, jawaban: st.jw }, { keepalive: !!keep }).then(function (r) {
         st.pel = r.pelanggaran || st.pel;
-        if (r.selesai && ujian) { finish({ skor: r.skor, otomatis: true }); return; }
+        if (r.selesai) { finish({ skor: r.skor, rinci: r.rinci, otomatis: true }); return; }
         var w = K3.$('#warn');
         if (!w) return;
         w.classList.remove('hidden');
         w.innerHTML = ujian
           ? '<b>Peringatan ' + st.pel + (r.batas ? ' dari ' + r.batas : '') + ':</b> ' + K3.esc(jenis) + ' tercatat. ' + (r.batas ? 'Pada pelanggaran ke-' + r.batas + ', ujian dikumpulkan otomatis.' : '')
-          : '<b>Pelanggaran latihan ke-' + st.pel + ':</b> ' + K3.esc(jenis) + '. Tercatat di laporan dosen.';
+          : '<b>Pelanggaran latihan ke-' + st.pel + (r.batas ? ' dari ' + r.batas : '') + ':</b> ' + K3.esc(jenis) + '. Tercatat di laporan dosen.' + (r.batas ? ' Pada pelanggaran ke-' + r.batas + ', latihan dikumpulkan otomatis.' : '');
       }).catch(function () {});
     }
     // Proteksi berlaku untuk LATIHAN dan UJIAN. Pelanggaran hanya dicatat & berakibat pada ujian.
@@ -89,8 +104,8 @@
       function warnLatihan(msg) { if (!ujian) K3.toast(msg); }
       // 1) pindah tab / aplikasi (HP & laptop)
       on(document, 'visibilitychange', function () {
-        if (document.hidden) { hide(); violation('Meninggalkan halaman ' + (ujian ? 'ujian' : 'latihan')); }
-        else showIfFocused();
+        if (document.hidden) { hide(); if (!st.selesai) saveNow(true); violation('Meninggalkan halaman ' + (ujian ? 'ujian' : 'latihan'), true); }
+        else { showIfFocused(); if (st.pergi && !st.selesai) { st.pergi = false; K3.api('kembali', { attempt: att.attempt }).catch(function () {}); } }
       });
       // 2) jendela kehilangan fokus: alat potong layar, aplikasi tangkap layar, jendela lain
       on(window, 'blur', function () { hide(); setTimeout(function () { if (!document.hidden && !document.hasFocus()) violation('Berpindah ke jendela/aplikasi lain'); }, 300); });
@@ -127,7 +142,9 @@
       // 6) cetak
       on(window, 'beforeprint', function () { hide(); violation('Percobaan mencetak'); });
       on(window, 'afterprint', function () { hide(800); });
-      if (ujian) on(window, 'beforeunload', function (e) { if (!st.selesai) { saveNow(); e.preventDefault(); e.returnValue = ''; } });
+      // 7) menutup tab/browser atau memuat ulang (HP & laptop)
+      on(window, 'pagehide', function () { if (!st.selesai) violation('Menutup halaman ' + (ujian ? 'ujian' : 'latihan'), true); });
+      on(window, 'beforeunload', function (e) { if (!st.selesai) { saveNow(true); e.preventDefault(); e.returnValue = ''; } });
     }
     function unlock() {
       listeners.forEach(function (l) { l[0].removeEventListener(l[1], l[2], l[3]); }); listeners = [];
@@ -138,10 +155,10 @@
     K3.cleanup = function () { if (!st.selesai) saveNow(); unlock(); };
 
     // ---------- simpan ----------
-    function saveNow() {
+    function saveNow(keep) {
       K3.store.set('jw_' + att.attempt, st.jw);
       if (!ujian || st.selesai) return;
-      K3.api('simpan', { attempt: att.attempt, jawaban: st.jw }).then(function (r) {
+      K3.api('simpan', { attempt: att.attempt, jawaban: st.jw }, { keepalive: !!keep }).then(function (r) {
         var s = K3.$('#saved'); if (s) s.textContent = r.selesai ? 'Ujian sudah selesai' : 'Tersimpan ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       }).catch(function () { var s = K3.$('#saved'); if (s) s.textContent = 'Belum tersimpan (koneksi). Mencoba lagi…'; });
     }
@@ -314,7 +331,7 @@
       K3.store.del('jw_' + att.attempt); K3.store.del('rg_' + att.attempt);
       var h = K3.topbar((ujian ? 'UJIAN' : 'LATIHAN') + ' · PERTEMUAN ' + m.no, m.judul, '#/') + '<div class="wrap stack"><div class="card stack" style="max-width:760px">';
       h += '<h1>' + (ujian ? 'Ujian terkumpul' : 'Latihan selesai') + '</h1>';
-      if (r.otomatis) h += '<div class="msg warn">Ujian dikumpulkan otomatis karena batas pelanggaran tercapai.</div>';
+      if (r.otomatis) h += '<div class="msg warn">' + (ujian ? 'Ujian' : 'Latihan') + ' dikumpulkan otomatis karena batas pelanggaran tercapai.</div>';
       if (r.waktuHabis) h += '<div class="msg warn">Waktu habis. Jawaban terakhir yang tersimpan sudah dikumpulkan.</div>';
       if (r.skor !== null && r.skor !== undefined) h += '<div style="font-size:44px;font-weight:800;line-height:1">' + K3.num(r.skor) + '<span class="muted" style="font-size:18px"> / 100</span></div>';
       else h += '<p>Jawaban Anda sudah diterima. Nilai diumumkan dosen.</p>';
