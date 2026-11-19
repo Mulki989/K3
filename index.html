@@ -277,7 +277,64 @@ td.c,th.c{text-align:center}
 .side nav button.on{background:var(--amber);color:var(--ink)}
 .side main{flex:999 1 640px;min-width:0;padding:22px;display:flex;flex-direction:column;gap:16px}
 @media (max-width:640px){.cap{grid-template-columns:30px 1fr 30px;column-gap:6px}.capb{width:30px;height:30px;font-size:18px}.cap p{font-size:14px;height:4.5em;-webkit-line-clamp:3}.narr{padding:6px 10px}.wrap,.stage{padding:12px}.pbar{padding:8px 10px;gap:8px}.prog span{display:none}.slide{padding:16px}.slide h1{font-size:21px}h1{font-size:21px}.pbar .nav{width:100%}.pbar .nav .btn{flex:1}}
+/* ===== Tema warna (v1.12): ungu ala Mentari (bawaan) · hijau (tombol Tema) ===== */
+:root{--pri:#7239EA;--pri-d:#5B26CF;--pri-soft:#EEE8FD;--pri-head:#D9D6FB;--hdr:#2A1A66;--hdr2:#3A2590;--ok:#13B07A;--ground:#F3F4FA;--line:#E3E4F0;--line2:#EEEFF7;--ink:#1F2233;--muted:#5E6278;--blue:#6A3DE0;--blue-soft:#ECE6FD;--green:#0E8F63;--green-soft:#DDF4EA;--dark2:#4B3C8F}
+html[data-tema=hijau]{--pri:#1F7A4D;--pri-d:#17603C;--pri-soft:#E3F1E9;--pri-head:#CFE8DA;--hdr:#0F3D2E;--hdr2:#145238;--ok:#1F9D63;--ground:#EEF4F0;--line:#DCE7E0;--line2:#E9F0EB;--blue:#1F7A4D;--blue-soft:#E3F1E9;--dark2:#2D5E48}
+.topbar,.pbar,.login .hero{background:var(--hdr)}
+.topbar .k{color:#CDBEFF}html[data-tema=hijau] .topbar .k{color:#A7E3C3}
+.btn.amber{background:var(--pri);color:#fff}.btn.amber:hover:not(:disabled){background:var(--pri-d)}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.ghost{border-color:var(--line)}
+.inp,.seg{border-color:var(--line)}
+.logo,.steps i.on,.tline>i,.dots i.d{background:var(--pri)}
+.dots i.d{background:#A78BFA}html[data-tema=hijau] .dots i.d{background:#7FD3A6}
+.play{background:var(--pri);color:#fff}.prog input{accent-color:#A78BFA}
+.tocbtn[aria-expanded=true]{background:var(--pri);border-color:var(--pri);color:#fff}
+.tg.cur>.tgb{border-color:var(--pri);background:var(--pri-soft)}.tgb:hover:not(:disabled),.tsb:hover:not(:disabled){background:var(--ground)}
+.tsb.on{background:var(--hdr)}.tsb.on .tsn{color:#CDBEFF}
+.tab.on{background:var(--pri);border-color:var(--pri)}
+.timer{background:var(--pri);color:#fff}
+.mno.on{background:var(--pri-soft);color:var(--pri-d)}
+.callout.blue{color:#2E1A6E}html[data-tema=hijau] .callout.blue{color:#14532D}
+th{background:var(--pri-head);color:var(--ink)}
+.bar{background:var(--line2)}.bar>i{background:var(--pri)}
+.spinner{border-top-color:var(--pri)}
+.btn{background:var(--pri)}.btn:hover:not(:disabled){background:var(--pri-d)}.btn.ghost:hover:not(:disabled){background:var(--pri-soft)}.btn.danger{background:var(--red)}
+.side nav{background:#fff;color:var(--ink);border-right:1px solid var(--line)}.side nav button{color:#3C4058;font-weight:600}.side nav button:hover{background:var(--ground)}
+.side nav button.on{background:var(--pri-soft);color:var(--pri-d);font-weight:800;box-shadow:inset 3px 0 0 var(--pri)}
+.side nav .small[style*="amber"]{color:var(--pri)!important}.side nav .small[style*="AEB6C2"]{color:var(--muted)!important}
+.login .hero .small[style*="amber"]{color:#CDBEFF!important}
+/* beranda mahasiswa */
+.bhero{position:relative;overflow:hidden;border-radius:22px;padding:26px 30px;color:#fff;background:var(--hdr);background-image:radial-gradient(rgba(255,255,255,.09) 1.2px,transparent 1.3px),linear-gradient(120deg,var(--hdr),var(--hdr2));background-size:16px 16px,100% 100%;display:flex;flex-wrap:wrap;gap:18px 30px;justify-content:space-between}
+.bhero .sem{font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:14px;opacity:.85;letter-spacing:.02em}
+.bhero h1{font-size:34px;line-height:1.15;margin:6px 0 8px;color:#fff}
+.bhero .who{font-size:15px;opacity:.92}
+.bhero .pill{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.12);font-size:14px;font-weight:600}
+.bhero .pill i{width:9px;height:9px;border-radius:50%;background:#4ADE80}
+.bhero .kj{flex:0 1 330px;min-width:220px;align-self:center}
+.bhero .kj .t{font-size:14px;font-weight:700;opacity:.92}.bhero .kj .p{font-size:34px;font-weight:800;margin:2px 0 8px}
+.bhero .kj .tr{height:12px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden}.bhero .kj .tr i{display:block;height:100%;background:#FBBF24;border-radius:6px;min-width:6px}
+.bhero .kj .n{font-size:14px;margin-top:8px;opacity:.92}
+.btools{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+.btools .btn{min-height:44px;border-radius:12px}
+.mcard{background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:22px 24px;display:grid;grid-template-columns:76px 1fr;gap:6px 22px;align-items:start}
+.mcard.lock{background:transparent;border-style:dashed;border-color:#CCCEDF}
+.mcard .no{width:76px;height:76px;border-radius:16px;display:grid;place-items:center;font-family:ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;font-size:30px;font-weight:700;background:var(--pri-soft);color:var(--pri-d)}
+.mcard.lock .no{background:#fff;color:#6B6F82}.mcard.lulus .no{background:var(--green-soft);color:var(--green)}
+.mcard h2{font-size:21px;line-height:1.3;margin-top:6px}
+.mcard .sub{color:var(--muted);font-size:15px;margin-top:4px}
+.mcard .stp{grid-column:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.stile{display:flex;flex-direction:column;gap:6px;min-height:120px;padding:16px;border:1.5px solid var(--line);border-radius:14px;background:#fff;color:inherit;text-decoration:none}
+a.stile:hover{border-color:var(--pri);box-shadow:0 4px 16px rgba(80,50,180,.10)}
+.stile.cur{border-color:var(--pri);box-shadow:0 0 0 1px var(--pri) inset}
+.stile.off{background:#FAFAFD;color:#8C90A3}.mcard.lock .stile{background:#FAFAFD}
+.stile.done{border-color:#B9E6D3;background:#F4FBF8}
+.stile b{font-size:17px}.stile.off b{color:#6B6F82}
+.stile .s{font-size:14px;color:var(--muted)}.stile.off .s{color:#9A9EB0}.stile.done .s{color:var(--green);font-weight:600}
+.stile .tr{margin-top:auto;height:8px;border-radius:4px;background:var(--line2);overflow:hidden}.stile .tr i{display:block;height:100%;background:var(--pri)}
+@media (max-width:760px){.bhero{padding:20px}.bhero h1{font-size:26px}.mcard{grid-template-columns:52px 1fr;padding:16px;gap:4px 14px}.mcard .no{width:52px;height:52px;font-size:20px;border-radius:12px}.mcard h2{font-size:17px}.mcard .stp{grid-column:1/-1;grid-template-columns:1fr;gap:8px}.stile{min-height:0}}
 </style>
+<script>try{var t=localStorage.getItem("k3_tema");if(t)document.documentElement.setAttribute("data-tema",JSON.parse(t));}catch(e){}</script>
 </head>
 <body>
 <div id="app"><div class="loading"><div class="spinner"></div>Memuat…</div></div>
