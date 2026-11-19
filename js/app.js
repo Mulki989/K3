@@ -181,39 +181,51 @@ var K3 = window.K3 || {};
     K3.api('beranda').then(function (d) {
       K3._beranda = d;
       if (K3.stale(rv)) return;
-      var selesai = d.materi.filter(function (m) { return m.lulus; }).length;
-      var h = K3.topbar(d.mhs.nim + ' · ' + d.mhs.kelas, 'Halo, ' + d.mhs.nama) + '<div class="wrap stack">';
-      h += '<div class="card stack"><div class="row" style="justify-content:space-between"><h2>' + K3.esc(d.mk) + '</h2><span class="chip amber">' + selesai + ' dari ' + d.materi.length + ' modul lulus</span></div>' +
-        '<div class="bar" aria-hidden="true"><i style="width:' + Math.round(selesai / Math.max(1, d.materi.length) * 100) + '%"></i></div>' +
-        '<div class="tabs"><a class="tab on" href="#/">Materi</a><a class="tab" href="#/tugas" style="display:inline-flex;align-items:center;text-decoration:none;color:inherit">Tugas (' + d.tugas.length + ')</a><a class="tab" href="#/nilai" style="display:inline-flex;align-items:center;text-decoration:none;color:inherit">Nilai saya</a></div></div>';
-      if (d.prasyarat) h += '<div class="msg warn small" style="margin:0">Alur setiap modul: <b>1. selesaikan semua slide</b> → <b>2. kerjakan latihan</b> → <b>3. ujian minimal ' + d.ambang + '</b>. Modul berikutnya terbuka setelah modul sebelumnya lulus.</div>';
-      h += '<div class="card" style="padding:0"><div class="mlist">';
+      var selesai = d.materi.filter(function (m) { return m.lulus; }).length, N = Math.max(1, d.materi.length);
+      var kj = d.materi.reduce(function (t, m) { return t + (m.lulus ? 1 : ((m.persen || 0) / 100 + (m.langkah && m.langkah.latihan ? 1 : 0) + (m.langkah && m.langkah.ujian ? 1 : 0)) / 3); }, 0) / N * 100;
+      var pk = kj > 0 && kj < 1 ? 1 : Math.round(kj);
+      var h = '<div class="wrap stack" style="gap:16px">';
+      h += '<section class="bhero"><div><div class="sem">' + K3.esc(d.semester ? 'Semester ' + d.semester : 'Kuliah interaktif') + '</div><h1>' + K3.esc(d.mk) + '</h1>' +
+        '<div class="who">' + K3.esc(d.mhs.nama) + ' · ' + K3.esc(d.mhs.nim) + ' · Kelas ' + K3.esc(d.mhs.kelas) + '</div>' +
+        '<div class="pill"><i></i>' + (window.PreviewBackend ? 'Mode pratinjau (tersimpan di perangkat)' : 'Tersimpan di server') + '</div></div>' +
+        '<div class="kj"><div class="t">Kemajuan semester</div><div class="p">' + pk + '%</div><div class="tr" role="progressbar" aria-valuenow="' + pk + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + pk + '%"></i></div>' +
+        '<div class="n">' + selesai + ' dari ' + d.materi.length + ' materi tuntas</div></div></section>';
+      h += '<div class="btools"><a class="btn ghost" href="#/tugas">Tugas (' + d.tugas.length + ')</a><a class="btn ghost" href="#/nilai">Nilai saya</a>' +
+        '<button class="btn ghost" id="tema" type="button" title="Ganti tema warna">Tema</button><button class="btn ghost" id="keluar" type="button">Keluar</button></div>';
+      if (d.prasyarat) h += '<div class="msg warn small" style="margin:0">Alur setiap pertemuan: <b>1. selesaikan semua slide materi</b> → <b>2. kerjakan latihan</b> → <b>3. ujian minimal ' + d.ambang + '</b>. Pertemuan berikutnya terbuka setelah pertemuan sebelumnya lulus.</div>';
+      h += '<div class="mlist" style="gap:16px">';
       d.materi.forEach(function (m) {
-        var cls = m.lulus ? 'done' : m.terbuka ? 'on' : '';
-        var step = function (ok, label) { return '<span class="chip ' + (ok ? 'green' : '') + '">' + (ok ? '✓ ' : '') + label + '</span>'; };
-        h += '<div class="mitem" data-m="' + m.id + '"><div class="mno ' + cls + '">P' + m.no + '</div><div class="info"><div style="font-weight:700">' + K3.esc(m.judul) + (m.lulus ? ' <span class="chip green">Lulus</span>' : '') + '</div>';
-        if (m.terbuka) {
-          h += '<div class="row small muted" style="gap:6px;margin-top:6px">' + step(m.langkah.materi, 'Materi ' + m.persen + '%' + (m.slideTotal ? ' (' + m.slideSelesai + '/' + m.slideTotal + ' slide' + (m.subMateri ? ', ' + m.subMateri + ' sub-materi' : '') + ')' : '')) + step(m.langkah.latihan, 'Latihan' + (m.latihan.terbaik !== null ? ' ' + K3.num(m.latihan.terbaik) : '')) +
-            step(m.langkah.ujian, 'Ujian ≥ ' + m.ambang + (m.ujian.skor !== null ? ' (' + K3.num(m.ujian.skor) + ')' : m.ujian.selesai && !m.lulus ? ' (belum)' : '')) + '</div>';
-        } else h += '<div class="small muted">' + K3.esc(m.alasan || 'Belum dibuka dosen') + '</div>';
-        h += '</div><div class="acts">';
-        if (m.terbuka) {
-          h += '<a class="btn sm ' + (m.persen < 100 ? 'amber' : 'ghost') + '" href="#/materi/' + m.id + '">' + (m.persen === 0 ? 'Mulai materi' : m.persen < 100 ? 'Lanjutkan' : 'Buka materi') + '</a>';
-          h += m.latihan.terbuka ? '<a class="btn sm ' + (m.persen >= 100 && !m.langkah.latihan ? 'amber' : 'ghost') + '" href="#/latihan/' + m.id + '">Latihan</a>' : '<button class="btn sm ghost" disabled title="' + K3.esc(m.latihan.alasan) + '">Latihan</button>';
-          h += m.ujian.terbuka ? '<a class="btn sm" href="#/ujian/' + m.id + '">' + (m.ujian.berjalan ? 'Lanjutkan ujian' : 'Ujian') + '</a>' : '<button class="btn sm ghost" disabled title="' + K3.esc(m.ujian.alasan) + '">Ujian</button>';
+        var no = (m.no < 10 ? '0' : '') + m.no;
+        var cls = !m.terbuka ? ' lock' : m.lulus ? ' lulus' : '';
+        h += '<article class="mitem mcard' + cls + '" data-m="' + m.id + '"><div class="no">' + no + '</div><div class="info"><h2>' + K3.esc(m.judul) + '</h2>' +
+          '<div class="sub">Pertemuan ' + m.no + (m.lulus ? ' · <span class="chip green">✓ Lulus' + (m.ujian.skor !== null ? ' · ' + K3.num(m.ujian.skor) : '') + '</span>' : '') +
+          (!m.terbuka ? ' · 🔒 ' + K3.esc(m.alasan || 'Belum dibuka dosen') : '') + '</div>' +
+          '</div>';
+        // langkah
+        var t1, t2, t3, cur = m.terbuka && !m.lulus ? (!m.langkah.materi ? 1 : !m.langkah.latihan ? 2 : 3) : 0;
+        if (!m.terbuka) {
+          t1 = '<div class="stile off"><b>1 · Materi</b><span class="s">Terkunci</span><span class="tr"><i style="width:0"></i></span></div>';
+          t2 = '<div class="stile off"><b>2 · Latihan</b><span class="s">Selesaikan materi dulu</span></div>';
+          t3 = '<div class="stile off"><b>3 · Ujian</b><span class="s">Lulus latihan ≥ ' + m.ambang + '% dulu</span></div>';
+        } else {
+          var s1 = m.persen >= 100 ? '✓ Selesai' + (m.slideTotal ? ' · ' + m.slideTotal + ' slide' : '') : m.persen > 0 ? 'Lanjutkan · ' + m.persen + '%' : 'Mulai materi';
+          t1 = '<a class="stile' + (cur === 1 ? ' cur' : m.persen >= 100 ? ' done' : '') + '" href="#/materi/' + m.id + '"><b>1 · Materi</b><span class="s">' + s1 + '</span>' +
+            (m.slideTotal && m.persen < 100 ? '<span class="small muted">' + m.slideSelesai + '/' + m.slideTotal + ' slide' + (m.subMateri ? ' · ' + m.subMateri + ' sub-materi' : '') + '</span>' : '') +
+            '<span class="tr"><i style="width:' + (m.persen || 0) + '%"></i></span></a>';
+          var s2 = m.latihan.terbaik !== null ? (m.langkah.latihan ? '✓ ' : '') + 'Nilai terbaik ' + K3.num(m.latihan.terbaik) : 'Kerjakan latihan';
+          t2 = m.latihan.terbuka ? '<a class="stile' + (cur === 2 ? ' cur' : m.langkah.latihan ? ' done' : '') + '" href="#/latihan/' + m.id + '"><b>2 · Latihan</b><span class="s">' + s2 + '</span></a>'
+            : '<div class="stile off"><b>2 · Latihan</b><span class="s">' + K3.esc(m.latihan.alasan || 'Selesaikan materi dulu') + '</span></div>';
+          var s3 = m.lulus ? '✓ Lulus · ' + K3.num(m.ujian.skor) : m.ujian.berjalan ? 'Lanjutkan ujian' : m.ujian.selesai ? 'Belum lulus (min. ' + m.ambang + ')' : 'Mulai ujian';
+          var al3 = (m.ujian.alasan || ('Lulus latihan ≥ ' + m.ambang + '% dulu')).replace(/Dibuka (\S+)/, function (_, dd) { return 'Dibuka ' + K3.fmtTgl(dd); });
+          t3 = m.ujian.terbuka ? '<a class="stile' + (cur === 3 ? ' cur' : m.lulus ? ' done' : '') + '" href="#/ujian/' + m.id + '"><b>3 · Ujian</b><span class="s">' + s3 + '</span></a>'
+            : '<div class="stile' + (m.lulus ? ' done' : ' off') + '"><b>3 · Ujian</b><span class="s">' + (m.lulus ? s3 : K3.esc(al3)) + '</span></div>';
         }
-        h += '</div>';
-        if (m.terbuka && !m.lulus && (!m.latihan.terbuka || !m.ujian.terbuka)) {
-          var notes = [];
-          if (!m.latihan.terbuka && m.latihan.alasan) notes.push('Latihan: ' + m.latihan.alasan);
-          if (!m.ujian.terbuka && m.ujian.alasan) notes.push('Ujian: ' + m.ujian.alasan.replace(/Dibuka (\S+)/, function (_, dd) { return 'dibuka ' + K3.fmtTgl(dd); }));
-          if (notes.length) h += '<div class="small muted" style="flex-basis:100%;padding-left:52px">' + K3.esc(notes.join(' · ')) + '</div>';
-        }
-        h += '</div>';
+        h += '<div class="stp acts">' + t1 + t2 + t3 + '</div></article>';
       });
-      h += '</div></div></div>';
+      h += '</div></div>';
       app().innerHTML = h;
       K3.$('#keluar').onclick = K3.keluar;
+      K3.$('#tema').onclick = function () { var t = document.documentElement.getAttribute('data-tema') === 'hijau' ? '' : 'hijau'; if (t) document.documentElement.setAttribute('data-tema', t); else document.documentElement.removeAttribute('data-tema'); K3.store.set('tema', t); K3.toast(t ? 'Tema hijau' : 'Tema ungu'); };
     }).catch(function (e) { if (!K3.stale(rv)) K3.errorView(e); });
   };
   K3.errorView = function (e, back) {
